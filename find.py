@@ -193,7 +193,7 @@ def listing():
 			result = es.search(
 				index='feeds',
 				body=query,
-				size=14
+				size=0
 			)
 			print(result['hits']['total'])
 			value = result['hits']['total']
