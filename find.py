@@ -16,112 +16,6 @@ import string
 
 
 
-# def ucwords(string):
-# 	return string[0].upper()+string[1:]
-
-
-# import re
-# def ucwords (s):
-#     """Returns a string with the first character of each word in str 
-#     capitalized, if that character is alphabetic."""
-#     return " ".join([w[0].upper() + w[1:] for w in re.split('\s*', s)])
-
-	
-@route('/')
-def home():
-		return 'radio gaga'
-
-
-@route('/findall')
-def findall():
-		# aws = AWS4Auth(AWS_ACCESS_ID, AWS_SECRET_KEY, AWS_DEFAULT_REGION, 'es')
-		# es = Elasticsearch(
-		# 		hosts=ES_HOST,
-		# 		http_auth=aws,
-		# 		use_ssl=False,
-		# 		verify_certs=True,
-		# 		connection_class=RequestsHttpConnection)
-		
-		query = {
-			"query": {
-				"match": {"task.platform": "twitter"}
-			}
-		}
-		es = Elasticsearch(
-		# http_auth= ('elastic','changeme'),
-		port= 9200,
-		hosts='localhost'
-		)
-		result = es.search(index='feeds', body=query)
-		return result
-
-@route('/find')
-# @route('/find/<my_last:int>')
-def find():
-		
-		es = Elasticsearch(
-		# http_auth= ('elastic','changeme'),
-		port= 9200,
-		hosts='localhost'
-		)
-		
-		end = int(time.time())
-		awal = int(time.time())
-		query={
-			"query": {
-				"bool": {
-					"must": [{
-						"match": {
-							"task.platform": "twitter"}
-							},{
-						"range": {
-							"createdat": {
-								"gte": 0,
-								"lte": end
-							}
-						}
-					}]
-				}
-			}
-		}
-		result = scan(
-			es, 
-			index='feeds', 
-			query=query,
-			# doc_type='feeds',
-			request_timeout=2000
-			)
-
-		# print('start: '+ str(start), ' end: '+str(end))
-		
-		sourcelabel = {}
-		tot = 0
-		for label in result:
-			# print('a')
-			tot += 1
-			try:
-				# print(result)
-				key = (label['_source']['metadata']['sourcelabel'].lower()).title()
-				# sourcelabel.append(label['_source']['metadata']['sourcelabel'].lower())
-				try:
-					sourcelabel[key] += 1
-				except:
-					sourcelabel[key] = 1
-			except Exception as err:
-				print(err)
-		# print(sourcelabel)
-
-		# balikan = Counter(sourcelabel).most_common()
-		# uc = [(ucfirst(k), v) for k,v in sourcelabel]
-
-		balikan = sorted(sourcelabel.items(), key=lambda kv: kv[1], reverse=True)
-		akhir = time.time()
-		selisih = akhir - awal
-		print(selisih)
-		print(tot)
-		return dict(balikan)
-
-
 list_client = [
 					{"key": "Twitter for Android"},
 					{"key": "Twitter for iPhone"},
@@ -165,11 +59,84 @@ list_client = [
 					{"key": "lsisi.id"}
 				]
 
+	
+@route('/')
+def home():
+		return 'radio gaga'
+
+
+@route('/findall')
+def findall():
+		
+		query = {
+			"query": {
+				"match": {"task.platform": "twitter"}
+			}
+		}
+		es = Elasticsearch(
+		port= 9200,
+		hosts='localhost'
+		)
+		result = es.search(index='feeds', body=query)
+		return result
+
+@route('/find')
+def find():
+		
+		es = Elasticsearch(
+		port= 9200,
+		hosts='localhost'
+		)
+		
+		end = int(time.time())
+		query={
+			"query": {
+				"bool": {
+					"must": [{
+						"match": {
+							"task.platform": "twitter"}
+							},{
+						"range": {
+							"createdat": {
+								"gte": 0,
+								"lte": end
+							}
+						}
+					}]
+				}
+			}
+		}
+		result = scan(
+			es, 
+			index='feeds', 
+			query=query,
+			request_timeout=2000
+			)
+		
+		sourcelabel = {}
+		tot = 0
+		for label in result:
+			tot += 1
+			try:
+				key = (label['_source']['metadata']['sourcelabel'].lower()).title()
+				try:
+					sourcelabel[key] += 1
+				except:
+					sourcelabel[key] = 1
+			except Exception as err:
+				print(err)
+
+		balikan = sorted(sourcelabel.items(), key=lambda kv: kv[1], reverse=True)
+		akhir = time.time()
+		selisih = akhir - end
+		print(selisih)
+		print(tot)
+		return dict(balikan)
+
+
 @route('/listing')
-# @route('/listing/<my_last:int>')
 def listing():
 	es = Elasticsearch(
-		# http_auth= ('elastic','changeme'),
 		port= 9200,
 		hosts='localhost'
 		)
@@ -177,7 +144,7 @@ def listing():
 	hasil = {}
 	awal = time.time()
 	for client in list_client:
-		# print(client)
+
 		try:
 			query={
 				"query": {
@@ -206,7 +173,6 @@ def listing():
 	end = time.time()
 	print('speed: '+ str(end-awal))
 
-	# return {'response':result}
 	return dict(balikan)
 
 
