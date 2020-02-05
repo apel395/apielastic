@@ -25,69 +25,69 @@ esIndex = 'feeds'
 
 @route('/')
 def home():
-		return 'radio gaga'
+	return 'radio gaga'
 
 
 @route('/findall')
 def findall():
 		
-		query = {
-			"query": {
-				"match": {"task.platform": "twitter"}
-			}
+	query = {
+		"query": {
+			"match": {"task.platform": "twitter"}
 		}
-		
-		result = es.search(index=esIndex, body=query)
-		return result
+	}
+
+	result = es.search(index=esIndex, body=query)
+	return result
 
 
 @route('/find')
 def find():
 		
-		end = int(time.time())
-		query={
-			"query": {
-				"bool": {
-					"must": [{
-						"match": {
-							"task.platform": "twitter"}
-							},{
-						"range": {
-							"createdat": {
-								"gte": 0,
-								"lte": end
-							}
+	end = int(time.time())
+	query={
+		"query": {
+			"bool": {
+				"must": [{
+					"match": {
+						"task.platform": "twitter"}
+						},{
+					"range": {
+						"createdat": {
+							"gte": 0,
+							"lte": end
 						}
-					}]
-				}
+					}
+				}]
 			}
 		}
-		result = scan(
-			es, 
-			index=esIndex, 
-			query=query,
-			request_timeout=2000
-			)
-		
-		sourcelabel = {}
-		tot = 0
-		for label in result:
-			tot += 1
-			try:
-				key = (label['_source']['metadata']['sourcelabel'].lower()).title()
-				try:
-					sourcelabel[key] += 1
-				except:
-					sourcelabel[key] = 1
-			except Exception as err:
-				print(err)
+	}
+	result = scan(
+		es, 
+		index=esIndex, 
+		query=query,
+		request_timeout=2000
+		)
 
-		balikan = sorted(sourcelabel.items(), key=lambda kv: kv[1], reverse=True)
-		akhir = time.time()
-		selisih = akhir - end
-		print(selisih)
-		print(tot)
-		return dict(balikan)
+	sourcelabel = {}
+	tot = 0
+	for label in result:
+		tot += 1
+		try:
+			key = (label['_source']['metadata']['sourcelabel'].lower()).title()
+			try:
+				sourcelabel[key] += 1
+			except:
+				sourcelabel[key] = 1
+		except Exception as err:
+			print(err)	
+	balikan = sorted(sourcelabel.items(), key=lambda kv: kv[1], reverse=True)
+	akhir = time.time()
+	selisih = akhir - end
+	print(selisih)
+	print(tot)
+
+	return dict(balikan)
 
 
 @route('/listing')
@@ -134,4 +134,4 @@ def listing():
 
 
 if __name__ == "__main__":
-		run(port=7777, debug=True)
+	run(port=7777, debug=True)
